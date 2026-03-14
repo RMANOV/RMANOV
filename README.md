@@ -46,6 +46,12 @@ Rust + PyO3 | Quantitative Finance | High-Performance Systems | Signal Processin
 | [**advanced-ichimoku-cloud**](https://github.com/RMANOV/advanced-ichimoku-cloud) | Rust+PyO3 Enhanced Ichimoku + Hull MA — 11 zero-copy NumPy functions, bit-exact parity |
 | [**Trading-bot-Portfolio-Manager**](https://github.com/RMANOV/Trading-bot-Portfolio-Manager) | Async trading system — VIX sentiment, dynamic risk management, Interactive Brokers API |
 
+### Autonomous Systems
+
+| Repo | Description |
+|------|-------------|
+| [**strix**](https://github.com/RMANOV/strix) | Rust+PyO3 drone swarm orchestration — dual particle filters, regime-switching models, anti-fragile loss recovery, edge LLM explainability |
+
 ### AI & Tooling
 
 | Repo | Description |
@@ -71,6 +77,7 @@ Rust + PyO3 | Quantitative Finance | High-Performance Systems | Signal Processin
 
 - **Rust + PyO3** — zero-copy NumPy bindings, GIL-free parallelism, SIMD acceleration
 - **Quantitative systems** — regime-switching models, particle filters, Ichimoku, algorithmic trading
+- **Autonomous systems** — drone swarm coordination, particle-filter navigation, multi-horizon planning, stigmergy
 - **Financial automation** — BG GAAP/IFRS reporting, Excel/VBA, data pipelines
 - **LLM tooling** — MCP servers, memory persistence, Claude Code integrations
 
