@@ -120,9 +120,9 @@ def fetch_all_language_data(
 
 
 def render_bar(pct: float, width: int = BAR_WIDTH) -> str:
-    """Render a text progress bar: ████████░░░░."""
+    """Render a text progress bar: ████████     (space-padded, no ghost blocks)."""
     filled = round(pct / 100 * width)
-    return "\u2588" * filled + "\u2591" * (width - filled)
+    return "\u2588" * filled + " " * (width - filled)
 
 
 def build_featured_table(scored: list[tuple[float, dict]]) -> str:
