@@ -19,6 +19,8 @@ OWNER = "RMANOV"
 TOP_N = 6
 BAR_WIDTH = 24
 MAX_LANGUAGES = 5
+EMAIL = "r.manov@gmail.com"
+LINKEDIN_URL = "https://linkedin.com/in/ruslan-m-a7a40266"
 
 # Coursework/hobby indicators — repos matching these get a scoring penalty.
 # Penalty, not exclusion: a coursework repo with many stars can still rank.
@@ -48,6 +50,14 @@ def gh_api(endpoint: str):
         print(f"  WARN: gh api {endpoint}: {result.stderr.strip()}", file=sys.stderr)
         return None
     return json.loads(result.stdout)
+
+
+def fetch_profile() -> dict:
+    """Fetch public profile metadata for the README header."""
+    profile = gh_api(f"users/{OWNER}")
+    if not profile or not isinstance(profile, dict):
+        return {}
+    return profile
 
 
 def fetch_public_repos() -> list[dict]:
@@ -186,6 +196,24 @@ def build_stats_line(repos: list[dict]) -> str:
     )
 
 
+def build_contact_line(profile: dict) -> str:
+    """Build contact links from live profile metadata plus stable external links."""
+    parts: list[str] = []
+
+    blog = (profile.get("blog") or "").strip()
+    if blog:
+        parts.append(f"[Resume / CV]({blog})")
+
+    parts.append(f"[LinkedIn]({LINKEDIN_URL})")
+    parts.append(f"[{EMAIL}](mailto:{EMAIL})")
+
+    location = (profile.get("location") or "").strip()
+    if location:
+        parts.append(location)
+
+    return " \u00b7 ".join(parts)
+
+
 def generate():
     """Main entry point."""
     script_dir = Path(__file__).resolve().parent
@@ -197,6 +225,9 @@ def generate():
         sys.exit(f"ERROR: Template not found at {template_path}")
 
     print(f"Using gh: {GH}")
+    print("Fetching profile...")
+    profile = fetch_profile()
+
     print("Fetching repos...")
     all_repos = fetch_public_repos()
     repos = filter_primary_repos(all_repos)
@@ -216,20 +247,13 @@ def generate():
         print(f"  {score:6.1f}  {repo['name']}")
 
     print("Rendering README...")
-    contact_line = (
-        "[Resume / CV](https://puzzle-espadrille-5cc.notion.site/"
-        "Ruslan-Manov-Professional-Autobiography-CV-"
-        "303219533f3981459003e2cd80624336) \u00b7 "
-        "[LinkedIn](https://linkedin.com/in/ruslan-m-a7a40266) \u00b7 "
-        "[r.manov@gmail.com](mailto:r.manov@gmail.com)"
-    )
-
     template_text = template_path.read_text(encoding="utf-8")
     readme = Template(template_text).safe_substitute(
+        display_name=(profile.get("name") or OWNER),
         featured_table=build_featured_table(scored),
         language_bars=build_language_bars(lang_stats),
         stats_line=build_stats_line(all_repos),
-        contact_line=contact_line,
+        contact_line=build_contact_line(profile),
         updated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
     )
 

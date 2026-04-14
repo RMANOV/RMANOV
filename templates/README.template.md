@@ -1,10 +1,10 @@
-# Ruslan Manov
+# $display_name
 
-**Systems and Quantitative Engineer** · 17 years building production software
+**Systems & Quantitative Engineer** · 17 years shipping production code
 
-I build fast Rust + PyO3 software for finance, automation, and developer tools.
+Building high-performance Rust+PyO3 systems for finance, swarm autonomy, enterprise automation, and developer tools.
 
-$contact_line · Sofia, Bulgaria
+$contact_line
 
 ---
 
@@ -18,7 +18,7 @@ $featured_table
 - **Quant finance** — particle filters, trading systems, and technical indicators
 - **Automation** — Excel/VBA tools, reporting flows, and financial data work
 - **Developer tools** — MCP memory servers, sync tools, and input engines
-- **Autonomy** — drone coordination, simulation, and explainable decision traces
+- **Swarm autonomy** — drone coordination, simulation, and explainable decision traces
 
 ### Languages
 
