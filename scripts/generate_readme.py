@@ -21,6 +21,73 @@ BAR_WIDTH = 24
 MAX_LANGUAGES = 5
 EMAIL = "r.manov@gmail.com"
 LINKEDIN_URL = "https://linkedin.com/in/ruslan-m-a7a40266"
+CODE_BYTES_CAP = 6.0
+FRESHNESS_WINDOW_DAYS = 180.0
+STAR_IMPACT_WEIGHT = 6.0
+FORK_IMPACT_WEIGHT = 4.0
+CODE_FILE_SUFFIXES = {
+    ".py",
+    ".rs",
+    ".java",
+    ".js",
+    ".ts",
+    ".tsx",
+    ".jsx",
+    ".go",
+    ".c",
+    ".cc",
+    ".cpp",
+    ".h",
+    ".hpp",
+    ".cs",
+    ".sql",
+    ".vb",
+    ".cls",
+    ".pq",
+    ".sh",
+}
+TEST_HINTS = {"tests", "test", "spec", "pytest.ini", "tox.ini"}
+DOC_HINTS = {
+    "docs",
+    "doc",
+    "Project_Docs",
+    "mkdocs.yml",
+    "mkdocs.yaml",
+    "docs.md",
+    "DEMO.md",
+    "INSTALL.md",
+    "WIKI.md",
+    "CONTRIBUTING.md",
+}
+MANIFEST_HINTS = {
+    "Cargo.toml",
+    "pyproject.toml",
+    "package.json",
+    "go.mod",
+    "pom.xml",
+    "build.gradle",
+    "build.gradle.kts",
+    "requirements.txt",
+    "setup.py",
+    "setup.cfg",
+}
+META_DIR_HINTS = {
+    ".git",
+    ".github",
+    ".cargo",
+    "docs",
+    "doc",
+    "tests",
+    "test",
+    "spec",
+    "scripts",
+    "config",
+    "paper",
+    "demo",
+    "examples",
+    "assets",
+    "templates",
+}
 
 # Coursework/hobby indicators — repos matching these get a scoring penalty.
 # Penalty, not exclusion: a coursework repo with many stars can still rank.
@@ -39,7 +106,7 @@ COURSEWORK_INDICATORS = [
 GH = shutil.which("gh") or os.path.expanduser("~/Apps/gh/bin/gh.exe")
 
 
-def gh_api(endpoint: str):
+def gh_api(endpoint: str, warn: bool = True):
     """Call GitHub API via gh CLI. Returns parsed JSON."""
     result = subprocess.run(
         [GH, "api", endpoint],
@@ -47,7 +114,10 @@ def gh_api(endpoint: str):
         text=True,
     )
     if result.returncode != 0:
-        print(f"  WARN: gh api {endpoint}: {result.stderr.strip()}", file=sys.stderr)
+        if warn:
+            print(
+                f"  WARN: gh api {endpoint}: {result.stderr.strip()}", file=sys.stderr
+            )
         return None
     return json.loads(result.stdout)
 
@@ -78,41 +148,133 @@ def filter_primary_repos(repos: list[dict]) -> list[dict]:
     return [r for r in repos if not r.get("fork")]
 
 
-def score_repo(repo: dict, lang_bytes: dict[str, int]) -> float:
-    """Weighted importance score for ranking.
+def fetch_repo_quality_signals(repos: list[dict]) -> dict[str, dict]:
+    """Fetch universal quality signals used for featured repo ranking."""
+    signals: dict[str, dict] = {}
+    for i, repo in enumerate(repos):
+        name = repo["name"]
+        print(f"  [{i + 1}/{len(repos)}] {name}")
 
-    Primary signal: code volume (log10 bytes) — objective complexity proxy.
-    Secondary: stars, forks, recency, description quality.
-    """
-    s = 0.0
-    s += repo.get("stargazers_count", 0) * 5
-    s += repo.get("forks_count", 0) * 3
+        root_items = gh_api(f"repos/{OWNER}/{name}/contents/", warn=False)
+        if not isinstance(root_items, list):
+            root_items = []
 
-    # Code volume: primary complexity signal (log10 scale)
-    # 1KB→9, 10KB→12, 100KB→15, 1MB→18, 10MB→21
+        item_names = {
+            item.get("name", "") for item in root_items if isinstance(item, dict)
+        }
+        root_dirs = [
+            item.get("name", "")
+            for item in root_items
+            if isinstance(item, dict) and item.get("type") == "dir"
+        ]
+        code_file_count = 0
+        for item in root_items:
+            if not isinstance(item, dict) or item.get("type") != "file":
+                continue
+            suffix = Path(item.get("name", "")).suffix.lower()
+            if suffix in CODE_FILE_SUFFIXES:
+                code_file_count += 1
+
+        crates_children = gh_api(f"repos/{OWNER}/{name}/contents/crates", warn=False)
+        crates_dir_count = 0
+        if isinstance(crates_children, list):
+            crates_dir_count = sum(
+                1
+                for item in crates_children
+                if isinstance(item, dict) and item.get("type") == "dir"
+            )
+
+        workflows = gh_api(
+            f"repos/{OWNER}/{name}/contents/.github/workflows",
+            warn=False,
+        )
+        releases = gh_api(f"repos/{OWNER}/{name}/releases?per_page=1", warn=False)
+
+        has_ci = isinstance(workflows, list) and len(workflows) > 0
+        has_tests = any(hint in item_names for hint in TEST_HINTS)
+        has_docs = any(hint in item_names for hint in DOC_HINTS)
+        has_license = bool(repo.get("license")) or any(
+            name.upper().startswith("LICENSE") for name in item_names
+        )
+        has_releases = isinstance(releases, list) and len(releases) > 0
+        has_homepage = bool((repo.get("homepage") or "").strip())
+        has_manifest = any(hint in item_names for hint in MANIFEST_HINTS)
+        has_src = "src" in item_names or "crates" in item_names
+        multiple_crates = crates_dir_count >= 2
+        code_root_dirs = [
+            dir_name
+            for dir_name in root_dirs
+            if dir_name not in META_DIR_HINTS and not dir_name.startswith(".")
+        ]
+        multi_binary_workspace = (
+            "Cargo.toml" in item_names
+            and len(code_root_dirs) >= 3
+            and (multiple_crates or "src" not in item_names)
+        )
+        toy_single_file = (
+            code_file_count <= 2
+            and not has_tests
+            and not has_ci
+            and not has_docs
+            and not has_manifest
+            and not has_src
+        )
+
+        signals[name] = {
+            "has_ci": has_ci,
+            "has_tests": has_tests,
+            "has_docs": has_docs,
+            "has_license": has_license,
+            "has_releases": has_releases,
+            "has_homepage": has_homepage,
+            "multiple_crates": multiple_crates,
+            "multi_binary_workspace": multi_binary_workspace,
+            "toy_single_file": toy_single_file,
+        }
+    return signals
+
+
+def score_repo(repo: dict, lang_bytes: dict[str, int], signals: dict) -> float:
+    """Rank repos by external impact, technical substance, and proof signals."""
     total_bytes = sum(lang_bytes.values()) if lang_bytes else 0
-    if total_bytes > 0:
-        s += math.log10(total_bytes) * 3
+    stars = repo.get("stargazers_count", 0)
+    forks = repo.get("forks_count", 0)
 
-    # Recency: light boost, max 10 (code volume and stars should dominate)
+    impact = (
+        math.log1p(stars) * STAR_IMPACT_WEIGHT + math.log1p(forks) * FORK_IMPACT_WEIGHT
+    )
+
+    substance = 0.0
+    if total_bytes > 0:
+        substance = min(math.log10(total_bytes), CODE_BYTES_CAP) * 3
+
+    freshness = 0.0
     pushed = repo.get("pushed_at", "")
     if pushed:
         pushed_dt = datetime.fromisoformat(pushed.replace("Z", "+00:00"))
-        days = (datetime.now(timezone.utc) - pushed_dt).days
-        s += max(0, 10 - days / 3)
+        days = max(0, (datetime.now(timezone.utc) - pushed_dt).days)
+        freshness = 6 / (1 + days / FRESHNESS_WINDOW_DAYS)
 
-    desc = repo.get("description") or ""
-    s += min(len(desc) / 20, 5)
+    proof = 0.0
+    proof += 4 if signals.get("has_ci") else 0
+    proof += 4 if signals.get("has_tests") else 0
+    proof += 3 if signals.get("has_license") else 0
+    proof += 3 if signals.get("has_releases") else 0
+    proof += 2 if signals.get("has_homepage") else 0
+    proof += 2 if signals.get("has_docs") else 0
+    proof += 3 if signals.get("multiple_crates") else 0
+    proof += 2 if signals.get("multi_binary_workspace") else 0
 
-    if repo.get("language"):
-        s += 2
-
-    # Coursework penalty: check name + description for educational patterns
-    name_desc = (repo["name"] + " " + desc).lower()
+    penalty = 0.0
+    name_desc = (repo["name"] + " " + (repo.get("description") or "")).lower()
     if any(ind in name_desc for ind in COURSEWORK_INDICATORS):
-        s *= 0.3
+        penalty += 12
+    if repo.get("archived"):
+        penalty += 8
+    if signals.get("toy_single_file"):
+        penalty += 5
 
-    return s
+    return impact + substance + freshness + proof - penalty
 
 
 def fetch_all_language_data(
@@ -238,8 +400,21 @@ def generate():
     per_repo_langs, lang_stats = fetch_all_language_data(repos)
     print(f"  {len(lang_stats)} languages detected")
 
+    print("Fetching repo quality signals...")
+    repo_signals = fetch_repo_quality_signals(repos)
+
     print("Scoring repos...")
-    scored = [(score_repo(r, per_repo_langs.get(r["name"], {})), r) for r in repos]
+    scored = [
+        (
+            score_repo(
+                r,
+                per_repo_langs.get(r["name"], {}),
+                repo_signals.get(r["name"], {}),
+            ),
+            r,
+        )
+        for r in repos
+    ]
     scored.sort(key=lambda x: x[0], reverse=True)
 
     print(f"Top {TOP_N}:")
