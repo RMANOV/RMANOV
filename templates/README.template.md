@@ -14,11 +14,11 @@ $featured_table
 
 ### Main Areas
 
+- **Swarm autonomy** — drone coordination, simulation, and explainable decision traces
+- **Developer tools** — MCP memory servers, sync tools, and input engines
 - **Fast systems** — Rust CLI tools, PyO3 bindings, and performance-focused utilities
 - **Quant finance** — particle filters, trading systems, and technical indicators
 - **Automation** — Excel/VBA tools, reporting flows, and financial data work
-- **Developer tools** — MCP memory servers, sync tools, and input engines
-- **Swarm autonomy** — drone coordination, simulation, and explainable decision traces
 
 ### Languages
 

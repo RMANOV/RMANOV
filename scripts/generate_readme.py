@@ -16,7 +16,7 @@ from pathlib import Path
 from string import Template
 
 OWNER = "RMANOV"
-TOP_N = 6
+TOP_N = 7
 BAR_WIDTH = 24
 MAX_LANGUAGES = 5
 EMAIL = "r.manov@gmail.com"
