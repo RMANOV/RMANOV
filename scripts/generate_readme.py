@@ -200,7 +200,8 @@ def fetch_repo_quality_signals(repos: list[dict]) -> dict[str, dict]:
         has_homepage = bool((repo.get("homepage") or "").strip())
         has_manifest = any(hint in item_names for hint in MANIFEST_HINTS)
         has_src = "src" in item_names or "crates" in item_names
-        multiple_crates = crates_dir_count >= 2
+        has_quality_gate = has_ci or has_tests or has_docs
+        multiple_crates = crates_dir_count >= 2 and has_quality_gate
         code_root_dirs = [
             dir_name
             for dir_name in root_dirs
@@ -209,6 +210,7 @@ def fetch_repo_quality_signals(repos: list[dict]) -> dict[str, dict]:
         multi_binary_workspace = (
             "Cargo.toml" in item_names
             and len(code_root_dirs) >= 3
+            and has_quality_gate
             and (multiple_crates or "src" not in item_names)
         )
         toy_single_file = (
