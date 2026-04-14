@@ -50,12 +50,22 @@ def gh_api(endpoint: str):
     return json.loads(result.stdout)
 
 
-def fetch_repos() -> list[dict]:
-    """Fetch all public, non-fork, owned repos."""
+def fetch_public_repos() -> list[dict]:
+    """Fetch all public repos owned by the profile."""
     repos = gh_api(f"users/{OWNER}/repos?per_page=100&type=owner&sort=pushed")
     if not repos:
         sys.exit("ERROR: Could not fetch repos. Check gh auth status.")
-    return [r for r in repos if not r.get("fork") and not r.get("private")]
+    return [r for r in repos if not r.get("private")]
+
+
+def filter_primary_repos(repos: list[dict]) -> list[dict]:
+    """Exclude forks for ranking and language stats.
+
+    GitHub's public repo count includes forks, so stats should use the full
+    public set. Featured projects and language bars should stay focused on
+    first-party work.
+    """
+    return [r for r in repos if not r.get("fork")]
 
 
 def score_repo(repo: dict, lang_bytes: dict[str, int]) -> float:
@@ -188,8 +198,10 @@ def generate():
 
     print(f"Using gh: {GH}")
     print("Fetching repos...")
-    repos = fetch_repos()
-    print(f"  Found {len(repos)} public repos")
+    all_repos = fetch_public_repos()
+    repos = filter_primary_repos(all_repos)
+    print(f"  Found {len(all_repos)} public repos total")
+    print(f"  Using {len(repos)} primary repos for ranking")
 
     print("Fetching language data (for scoring + language bars)...")
     per_repo_langs, lang_stats = fetch_all_language_data(repos)
@@ -205,18 +217,18 @@ def generate():
 
     print("Rendering README...")
     contact_line = (
-        "[r.manov@gmail.com](mailto:r.manov@gmail.com) \u00b7 "
-        "[LinkedIn](https://linkedin.com/in/ruslan-m-a7a40266) \u00b7 "
-        "[CV / Portfolio](https://puzzle-espadrille-5cc.notion.site/"
+        "[Resume / CV](https://puzzle-espadrille-5cc.notion.site/"
         "Ruslan-Manov-Professional-Autobiography-CV-"
-        "303219533f3981459003e2cd80624336)"
+        "303219533f3981459003e2cd80624336) \u00b7 "
+        "[LinkedIn](https://linkedin.com/in/ruslan-m-a7a40266) \u00b7 "
+        "[r.manov@gmail.com](mailto:r.manov@gmail.com)"
     )
 
     template_text = template_path.read_text(encoding="utf-8")
     readme = Template(template_text).safe_substitute(
         featured_table=build_featured_table(scored),
         language_bars=build_language_bars(lang_stats),
-        stats_line=build_stats_line(repos),
+        stats_line=build_stats_line(all_repos),
         contact_line=contact_line,
         updated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
     )
