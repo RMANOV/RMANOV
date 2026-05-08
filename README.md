@@ -1,6 +1,6 @@
 # Ruslan Manov
 
-**Systems & Quantitative Engineer** · 17 years shipping production code
+**Systems & Quantitative Engineer** · 18 years shipping production code
 
 Building high-performance Rust+PyO3 systems for finance, swarm autonomy, enterprise automation, and developer tools.
 
