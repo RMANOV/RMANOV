@@ -12,6 +12,14 @@ $contact_line
 
 $featured_table
 
+### Field Notes
+
+Public writing entry points for the systems behind the repos. The full index is generated from Dev.to so readers do not have to search by name across platforms.
+
+$writing_table
+
+[$publications_stats](./PUBLICATIONS.md)
+
 ### Main Areas
 
 - **Swarm autonomy** — drone coordination, simulation, and explainable decision traces

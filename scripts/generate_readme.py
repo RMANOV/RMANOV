@@ -14,13 +14,19 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from string import Template
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 OWNER = "RMANOV"
 TOP_N = 7
+WRITING_TOP_N = 6
 BAR_WIDTH = 24
 MAX_LANGUAGES = 5
 EMAIL = "r.manov@gmail.com"
 LINKEDIN_URL = "https://linkedin.com/in/ruslan-m-a7a40266"
+DEVTO_USERNAME = "ruslan_manov"
+DEVTO_API_URL = f"https://dev.to/api/articles?username={DEVTO_USERNAME}&per_page=100"
+PUBLICATIONS_FILENAME = "PUBLICATIONS.md"
 CODE_BYTES_CAP = 6.0
 FRESHNESS_WINDOW_DAYS = 180.0
 STAR_IMPACT_WEIGHT = 6.0
@@ -122,6 +128,24 @@ def gh_api(endpoint: str, warn: bool = True):
     return json.loads(result.stdout)
 
 
+def fetch_json_url(url: str, warn: bool = True):
+    """Fetch JSON from a public URL with no external dependencies."""
+    request = Request(
+        url,
+        headers={
+            "Accept": "application/json",
+            "User-Agent": "RMANOV-profile-readme-generator",
+        },
+    )
+    try:
+        with urlopen(request, timeout=20) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as exc:
+        if warn:
+            print(f"  WARN: fetch {url}: {exc}", file=sys.stderr)
+        return None
+
+
 def fetch_profile() -> dict:
     """Fetch public profile metadata for the README header."""
     profile = gh_api(f"users/{OWNER}")
@@ -136,6 +160,18 @@ def fetch_public_repos() -> list[dict]:
     if not repos:
         sys.exit("ERROR: Could not fetch repos. Check gh auth status.")
     return [r for r in repos if not r.get("private")]
+
+
+def fetch_devto_articles() -> list[dict] | None:
+    """Fetch public Dev.to articles as the automatic writing index base."""
+    articles = fetch_json_url(DEVTO_API_URL)
+    if not isinstance(articles, list):
+        return None
+    return sorted(
+        [a for a in articles if isinstance(a, dict) and a.get("url")],
+        key=lambda a: a.get("published_timestamp") or "",
+        reverse=True,
+    )
 
 
 def filter_primary_repos(repos: list[dict]) -> list[dict]:
@@ -326,6 +362,278 @@ def build_featured_table(scored: list[tuple[float, dict]]) -> str:
     return "\n".join(lines)
 
 
+def parse_article_datetime(article: dict) -> datetime:
+    """Parse Dev.to publication timestamp; epoch fallback keeps bad rows last."""
+    raw = article.get("published_timestamp") or article.get("published_at") or ""
+    if not raw:
+        return datetime.fromtimestamp(0, timezone.utc)
+    try:
+        return datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        return datetime.fromtimestamp(0, timezone.utc)
+
+
+def format_article_date(article: dict) -> str:
+    return parse_article_datetime(article).strftime("%Y-%m-%d")
+
+
+def article_tags(article: dict) -> list[str]:
+    tags = article.get("tag_list") or []
+    return [str(tag).lower() for tag in tags if str(tag).strip()]
+
+
+def classify_article(article: dict) -> str:
+    """Map Dev.to tags/titles to reader-facing publication lanes."""
+    tags = set(article_tags(article))
+    title = (article.get("title") or "").lower()
+    haystack = title + " " + " ".join(tags)
+
+    ai_memory_title = any(
+        term in title
+        for term in (
+            "agent",
+            "debate",
+            "claude",
+            "codex",
+            "mcp",
+            "sqlite wal",
+            "memory consolidation",
+            "shared working memory",
+            "memory war room",
+            "brain for claude",
+        )
+    )
+    ai_memory_tags = {"mcp", "claude", "codex", "claudeai"} & tags
+    if ai_memory_tags or ai_memory_title:
+        return "AI memory & agent systems"
+    if {"robotics", "swarm"} & tags or any(
+        term in haystack for term in ("strix", "swarm", "drone", "robotics")
+    ):
+        return "Swarm autonomy & robotics"
+    if {"ichimoku", "technicalanalysis", "tradingindicators"} & tags or any(
+        term in haystack for term in ("particle filter", "ichimoku", "pyo3", "quant")
+    ):
+        return "Rust/PyO3 & quant systems"
+    if {"algorithms", "math", "datascience", "tutorial"} & tags:
+        return "Algorithms & engineering notes"
+    return "Other public writing"
+
+
+def article_repo_hint(article: dict) -> str:
+    """Attach likely repo/project entry points without requiring manual upkeep."""
+    title = (article.get("title") or "").lower()
+    tags = set(article_tags(article))
+
+    if {"mcp", "claude", "codex", "claudeai"} & tags or any(
+        term in title
+        for term in (
+            "agent",
+            "debate",
+            "claude",
+            "codex",
+            "sqlite wal",
+            "memory consolidation",
+            "shared working memory",
+            "memory war room",
+            "brain for claude",
+        )
+    ):
+        return "[sqlite-memory-mcp](https://github.com/RMANOV/sqlite-memory-mcp)"
+    if {"robotics"} & tags or any(
+        term in title for term in ("strix", "swarm", "drone")
+    ):
+        return "[strix](https://github.com/RMANOV/strix)"
+    if "particle filter" in title:
+        return "[particle-filter-rs](https://github.com/RMANOV/particle-filter-rs)"
+    if "ichimoku" in title:
+        return "[advanced-ichimoku-cloud](https://github.com/RMANOV/advanced-ichimoku-cloud)"
+    return "field note"
+
+
+def score_article(article: dict) -> float:
+    """Rank writing for the profile entry points."""
+    published = parse_article_datetime(article)
+    age_days = max(0, (datetime.now(timezone.utc) - published).days)
+    recency = max(0.0, 365.0 - age_days) / 365.0 * 4.0
+    reactions = article.get("public_reactions_count", 0) or 0
+    comments = article.get("comments_count", 0) or 0
+    engagement = reactions * 5.0 + comments * 9.0
+
+    title = (article.get("title") or "").lower()
+    title_bonus = 0.0
+    for phrase, bonus in {
+        "reviewable": 8.0,
+        "debate protocol": 7.0,
+        "shared working memory": 6.0,
+        "memory war room": 5.0,
+        "amnesiac": 5.0,
+        "blindsight": 5.0,
+        "particle filter": 4.0,
+        "ichimoku": 4.0,
+        "count a billion": 4.0,
+        "fuzzy matching": 3.0,
+        "primes": 2.0,
+    }.items():
+        if phrase in title:
+            title_bonus += bonus
+
+    return recency + engagement + title_bonus
+
+
+def select_featured_articles(
+    articles: list[dict], limit: int = WRITING_TOP_N
+) -> list[dict]:
+    """Pick diverse profile entry points instead of a raw chronological list."""
+    if not articles:
+        return []
+
+    category_order = [
+        "AI memory & agent systems",
+        "Swarm autonomy & robotics",
+        "Rust/PyO3 & quant systems",
+        "Algorithms & engineering notes",
+    ]
+    selected: list[dict] = []
+    seen_urls: set[str] = set()
+
+    for category in category_order:
+        category_articles = [
+            article for article in articles if classify_article(article) == category
+        ]
+        if not category_articles:
+            continue
+        best = max(category_articles, key=score_article)
+        selected.append(best)
+        seen_urls.add(best["url"])
+
+    for article in sorted(articles, key=score_article, reverse=True):
+        if len(selected) >= limit:
+            break
+        if article["url"] in seen_urls:
+            continue
+        selected.append(article)
+        seen_urls.add(article["url"])
+
+    return selected[:limit]
+
+
+def build_writing_table(articles: list[dict]) -> str:
+    """Build the short README writing table."""
+    if not articles:
+        return "_Writing index temporarily unavailable; see `PUBLICATIONS.md`._"
+
+    lines = [
+        "| Field note | Lane | Project |",
+        "|------------|------|---------|",
+    ]
+    for article in select_featured_articles(articles):
+        title = article.get("title") or "Untitled"
+        url = article["url"]
+        lane = classify_article(article)
+        project = article_repo_hint(article)
+        lines.append(f"| [{title}]({url}) | {lane} | {project} |")
+    return "\n".join(lines)
+
+
+def build_publications_stats(articles: list[dict]) -> str:
+    """Build a compact one-line stats string for the README."""
+    if not articles:
+        return "Dev.to source currently unavailable"
+    reactions = sum(
+        article.get("public_reactions_count", 0) or 0 for article in articles
+    )
+    comments = sum(article.get("comments_count", 0) or 0 for article in articles)
+    return (
+        f"**{len(articles)}** public Dev.to articles indexed"
+        f" · **{reactions}** reactions"
+        f" · **{comments}** comments"
+    )
+
+
+def build_publications_markdown(articles: list[dict], updated_at: str) -> str:
+    """Render the full generated writing index."""
+    lines = [
+        "# RMANOV Public Writing Index",
+        "",
+        "A navigable index of public field notes, articles, and project write-ups.",
+        "The current automatic source is Dev.to because it exposes a stable public API.",
+        "LinkedIn and Medium can be added later through a small manual manifest when their links need to be pinned.",
+        "",
+        f"Source: https://dev.to/{DEVTO_USERNAME}",
+        f"Last generated: {updated_at}",
+        "",
+        "## Start Here",
+        "",
+        build_writing_table(articles),
+        "",
+        "## All Indexed Writing",
+        "",
+    ]
+
+    if not articles:
+        lines.extend(
+            [
+                "_No Dev.to articles were available during this generation run._",
+                "",
+                "<!-- Auto-generated by scripts/generate_readme.py -->",
+                "",
+            ]
+        )
+        return "\n".join(lines)
+
+    categories = [
+        "AI memory & agent systems",
+        "Swarm autonomy & robotics",
+        "Rust/PyO3 & quant systems",
+        "Algorithms & engineering notes",
+        "Other public writing",
+    ]
+    for category in categories:
+        category_articles = [
+            article for article in articles if classify_article(article) == category
+        ]
+        if not category_articles:
+            continue
+
+        lines.extend(
+            [
+                f"### {category}",
+                "",
+                "| Date | Article | Project | Signals | Tags |",
+                "|------|---------|---------|---------|------|",
+            ]
+        )
+        for article in sorted(
+            category_articles, key=parse_article_datetime, reverse=True
+        ):
+            title = article.get("title") or "Untitled"
+            url = article["url"]
+            project = article_repo_hint(article)
+            reactions = article.get("public_reactions_count", 0) or 0
+            comments = article.get("comments_count", 0) or 0
+            signals = f"{reactions} reactions / {comments} comments"
+            tags = ", ".join(article_tags(article)) or "-"
+            lines.append(
+                f"| {format_article_date(article)} | [{title}]({url}) | "
+                f"{project} | {signals} | {tags} |"
+            )
+        lines.append("")
+
+    lines.extend(
+        [
+            "## Notes",
+            "",
+            "- This file is generated from the public Dev.to API.",
+            "- Project hints are inferred from title and tags; they are intentionally conservative.",
+            "- LinkedIn is still the stronger social channel for some essays, but it is not a reliable automatic source.",
+            "",
+            "<!-- Auto-generated by scripts/generate_readme.py -->",
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
 def build_language_bars(lang_stats: dict[str, int]) -> str:
     """Build text-based language bar chart."""
     total = sum(lang_stats.values())
@@ -384,6 +692,7 @@ def generate():
     repo_root = script_dir.parent
     template_path = repo_root / "templates" / "README.template.md"
     output_path = repo_root / "README.md"
+    publications_path = repo_root / PUBLICATIONS_FILENAME
 
     if not template_path.exists():
         sys.exit(f"ERROR: Template not found at {template_path}")
@@ -423,19 +732,34 @@ def generate():
     for score, repo in scored[:TOP_N]:
         print(f"  {score:6.1f}  {repo['name']}")
 
+    print("Fetching public writing from Dev.to...")
+    articles = fetch_devto_articles()
+    if articles is None:
+        sys.exit("ERROR: Could not fetch Dev.to articles; keeping existing output.")
+    print(f"  Found {len(articles)} Dev.to articles")
+
     print("Rendering README...")
+    updated_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     template_text = template_path.read_text(encoding="utf-8")
     readme = Template(template_text).safe_substitute(
         display_name=(profile.get("name") or OWNER),
         featured_table=build_featured_table(scored),
+        writing_table=build_writing_table(articles),
+        publications_stats=build_publications_stats(articles),
         language_bars=build_language_bars(lang_stats),
         stats_line=build_stats_line(all_repos),
         contact_line=build_contact_line(profile),
-        updated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+        updated_at=updated_at,
     )
 
     output_path.write_text(readme, encoding="utf-8")
     print(f"Done. README written to {output_path}")
+
+    publications_path.write_text(
+        build_publications_markdown(articles, updated_at),
+        encoding="utf-8",
+    )
+    print(f"Done. Publications written to {publications_path}")
 
 
 if __name__ == "__main__":
