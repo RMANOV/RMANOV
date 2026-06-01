@@ -5,7 +5,7 @@ The current automatic source is Dev.to because it exposes a stable public API.
 LinkedIn and Medium can be added later through a small manual manifest when their links need to be pinned.
 
 Source: https://dev.to/ruslan_manov
-Last generated: 2026-05-31 07:31 UTC
+Last generated: 2026-06-01 08:06 UTC
 
 ## Start Here
 
@@ -24,7 +24,7 @@ Last generated: 2026-05-31 07:31 UTC
 
 | Date | Article | Project | Signals | Tags |
 |------|---------|---------|---------|------|
-| 2026-05-18 | [Reviewable Memory Consolidation for Local AI Agents](https://dev.to/ruslan_manov/reviewable-memory-consolidation-for-local-ai-agents-2nd0) | [sqlite-memory-mcp](https://github.com/RMANOV/sqlite-memory-mcp) | 2 reactions / 4 comments | ai, mcp, sqlite, opensource |
+| 2026-05-18 | [Reviewable Memory Consolidation for Local AI Agents](https://dev.to/ruslan_manov/reviewable-memory-consolidation-for-local-ai-agents-2nd0) | [sqlite-memory-mcp](https://github.com/RMANOV/sqlite-memory-mcp) | 2 reactions / 5 comments | ai, mcp, sqlite, opensource |
 | 2026-05-18 | [Why a Text File Is Not a Debate Protocol](https://dev.to/ruslan_manov/why-a-text-file-is-not-a-debate-protocol-1758) | [sqlite-memory-mcp](https://github.com/RMANOV/sqlite-memory-mcp) | 1 reactions / 0 comments | ai, mcp, sqlite, opensource |
 | 2026-04-27 | [Building a Shared Working Memory for Humans, Claude, and Codex](https://dev.to/ruslan_manov/building-a-shared-working-memory-for-humans-claude-and-codex-47g1) | [sqlite-memory-mcp](https://github.com/RMANOV/sqlite-memory-mcp) | 0 reactions / 0 comments | sqlite, memory, claude, codex |
 | 2026-04-22 | [The Premium Future of Agentic Software Is a Memory War Room, Not Another Model Wrapper](https://dev.to/ruslan_manov/the-premium-future-of-agentic-software-is-a-memory-war-room-not-another-model-wrapper-44lb) | [sqlite-memory-mcp](https://github.com/RMANOV/sqlite-memory-mcp) | 1 reactions / 0 comments | devtools, ai, sqlite, mcp |
