@@ -4,7 +4,7 @@
 
 Building high-performance Rust+PyO3 systems for finance, swarm autonomy, enterprise automation, and developer tools.
 
-[Resume / CV](https://puzzle-espadrille-5cc.notion.site/Ruslan-Manov-Professional-Autobiography-CV-303219533f3981459003e2cd80624336?source=copy_link) · [LinkedIn](https://linkedin.com/in/ruslan-m-a7a40266) · [r.manov@gmail.com](mailto:r.manov@gmail.com) · Sofia, Bulgaria
+[Resume / CV](https://puzzle-espadrille-5cc.notion.site/Ruslan-Manov-Professional-Autobiography-CV-303219533f3981459003e2cd80624336?source=copy_link) · [LinkedIn](https://linkedin.com/in/ruslan-m-a7a40266) · Sofia, Bulgaria
 
 ---
 
