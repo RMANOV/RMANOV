@@ -27,6 +27,9 @@ LINKEDIN_URL = "https://linkedin.com/in/ruslan-m-a7a40266"
 DEVTO_USERNAME = "ruslan_manov"
 DEVTO_API_URL = f"https://dev.to/api/articles?username={DEVTO_USERNAME}&per_page=100"
 PUBLICATIONS_FILENAME = "PUBLICATIONS.md"
+FRONT_PAGE_EXCLUDED_REPOS = {
+    "rust-search-tools-for-linux",
+}
 CODE_BYTES_CAP = 6.0
 FRESHNESS_WINDOW_DAYS = 180.0
 STAR_IMPACT_WEIGHT = 6.0
@@ -181,7 +184,11 @@ def filter_primary_repos(repos: list[dict]) -> list[dict]:
     public set. Featured projects and language bars should stay focused on
     first-party work.
     """
-    return [r for r in repos if not r.get("fork")]
+    return [
+        r
+        for r in repos
+        if not r.get("fork") and r.get("name") not in FRONT_PAGE_EXCLUDED_REPOS
+    ]
 
 
 def fetch_repo_quality_signals(repos: list[dict]) -> dict[str, dict]:

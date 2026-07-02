@@ -15,7 +15,6 @@ Building high-performance Rust+PyO3 systems for finance, swarm autonomy, enterpr
 | [**sqlite-memory-mcp**](https://github.com/RMANOV/sqlite-memory-mcp) | Python | SQLite-backed MCP Memory Server with WAL concurrent safety, FTS5 search, session tracking, task management, and... |
 | [**strix**](https://github.com/RMANOV/strix) | Rust | Drone swarm orchestration: combinatorial auctions, particle filters, fear meta-parameter, glass-box XAI — 23K lines of... |
 | [**smartkey**](https://github.com/RMANOV/smartkey) | Rust | Rust predictive keyboard engine — CVM streaming adaptation, ghost text, IBus (Linux) + TSF (Windows) integration.... |
-| [**rust-search-tools-for-linux**](https://github.com/RMANOV/rust-search-tools-for-linux) | Rust | Ultra-fast search tools for Linux — 7 Rust replacements: grep/find/ls/du/awk/cut/tail, 60x faster, multi-threaded,... |
 | [**advanced-ichimoku-cloud**](https://github.com/RMANOV/advanced-ichimoku-cloud) | Rust | Rust+PyO3 Enhanced Ichimoku Cloud with Hull MA smoothing — 11 zero-copy NumPy functions, GIL-free, bit-exact parity |
 | [**Auto-Brightness-Sound-Levels-Windows-Linux**](https://github.com/RMANOV/Auto-Brightness-Sound-Levels-Windows-Linux) | Python | Adaptive screen brightness & sound auto-control for Linux and Windows — smooth transitions, ambient-aware, zero-touch |
 | [**particle-filter-rs**](https://github.com/RMANOV/particle-filter-rs) | Rust | Rust+PyO3 regime-switching particle filter — 19 zero-copy NumPy functions, rayon-parallelized, GIL-free sequential... |
