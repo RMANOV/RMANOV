@@ -21,9 +21,18 @@ Building high-performance Rust+PyO3 systems for finance, swarm autonomy, enterpr
 | [**particle-filter-rs**](https://github.com/RMANOV/particle-filter-rs) | Rust | Rust+PyO3 regime-switching particle filter — 19 zero-copy NumPy functions, rayon-parallelized, GIL-free sequential... |
 | [**simple-program-launcher**](https://github.com/RMANOV/simple-program-launcher) | Rust | Lightning-fast program launcher triggered by L+R mouse click. 10K clipboard history, instant search, smart tracking. |
 
-<a href="https://github.com/RMANOV/algorithmic-arts"><img src="https://raw.githubusercontent.com/RMANOV/algorithmic-arts/main/assets/hopf-fibration.gif" width="420" alt="Hopf fibration — the circles of S3, live in pure Python"></a>
+<table>
+<tr>
+<td><a href="https://github.com/RMANOV/algorithmic-arts"><img src="https://raw.githubusercontent.com/RMANOV/algorithmic-arts/main/assets/hopf-fibration.gif" width="380" alt="Hopf fibration — the circles of S3"></a></td>
+<td><a href="https://github.com/RMANOV/algorithmic-arts"><img src="https://raw.githubusercontent.com/RMANOV/algorithmic-arts/main/assets/murmuration-wars.gif" width="380" alt="Murmuration Wars — three warring boid flocks"></a></td>
+</tr>
+<tr>
+<td><a href="https://github.com/RMANOV/algorithmic-arts"><img src="https://raw.githubusercontent.com/RMANOV/algorithmic-arts/main/assets/three-body-ballet.gif" width="380" alt="Three-Body Ballet — the figure-8 choreography forming"></a></td>
+<td><a href="https://github.com/RMANOV/algorithmic-arts"><img src="https://raw.githubusercontent.com/RMANOV/algorithmic-arts/main/assets/hyperbolic-flow.gif" width="380" alt="Hyperbolic Flow — Poincare disk under a Mobius map"></a></td>
+</tr>
+</table>
 
-*The Hopf fibration, animated in pure-stdlib Python — from [algorithmic-arts](https://github.com/RMANOV/algorithmic-arts).*
+*Hopf fibration · warring boid murmurations · the three-body figure-8 forming · hyperbolic Möbius flow — pure-stdlib Python, from [algorithmic-arts](https://github.com/RMANOV/algorithmic-arts).*
 
 ### Field Notes
 
