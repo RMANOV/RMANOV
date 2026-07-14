@@ -16,9 +16,14 @@ Building high-performance Rust+PyO3 systems for finance, swarm autonomy, enterpr
 | [**strix**](https://github.com/RMANOV/strix) | Rust | Drone swarm orchestration: combinatorial auctions, particle filters, fear meta-parameter, glass-box XAI — 23K lines of... |
 | [**smartkey**](https://github.com/RMANOV/smartkey) | Rust | Rust predictive keyboard engine — CVM streaming adaptation, ghost text, IBus (Linux) + TSF (Windows) integration.... |
 | [**advanced-ichimoku-cloud**](https://github.com/RMANOV/advanced-ichimoku-cloud) | Rust | Rust+PyO3 Enhanced Ichimoku Cloud with Hull MA smoothing — 11 zero-copy NumPy functions, GIL-free, bit-exact parity |
+| [**algorithmic-arts**](https://github.com/RMANOV/algorithmic-arts) | Python | Mathematical animations in pure Python — Hopf fibration, three-body choreography, hyperbolic flows, strange attractors. Zero dependencies, stdlib only |
 | [**Auto-Brightness-Sound-Levels-Windows-Linux**](https://github.com/RMANOV/Auto-Brightness-Sound-Levels-Windows-Linux) | Python | Adaptive screen brightness & sound auto-control for Linux and Windows — smooth transitions, ambient-aware, zero-touch |
 | [**particle-filter-rs**](https://github.com/RMANOV/particle-filter-rs) | Rust | Rust+PyO3 regime-switching particle filter — 19 zero-copy NumPy functions, rayon-parallelized, GIL-free sequential... |
 | [**simple-program-launcher**](https://github.com/RMANOV/simple-program-launcher) | Rust | Lightning-fast program launcher triggered by L+R mouse click. 10K clipboard history, instant search, smart tracking. |
+
+<a href="https://github.com/RMANOV/algorithmic-arts"><img src="https://raw.githubusercontent.com/RMANOV/algorithmic-arts/main/assets/hopf-fibration.gif" width="420" alt="Hopf fibration — the circles of S3, live in pure Python"></a>
+
+*The Hopf fibration, animated in pure-stdlib Python — from [algorithmic-arts](https://github.com/RMANOV/algorithmic-arts).*
 
 ### Field Notes
 
