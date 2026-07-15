@@ -5,7 +5,7 @@ The current automatic source is Dev.to because it exposes a stable public API.
 LinkedIn and Medium can be added later through a small manual manifest when their links need to be pinned.
 
 Source: https://dev.to/ruslan_manov
-Last generated: 2026-07-14 06:53 UTC
+Last generated: 2026-07-15 06:54 UTC
 
 ## Start Here
 
@@ -51,6 +51,7 @@ Last generated: 2026-07-14 06:53 UTC
 
 | Date | Article | Project | Signals | Tags |
 |------|---------|---------|---------|------|
+| 2026-07-14 | [Mathematical Animations in Pure Python — Zero Dependencies, One File](https://dev.to/ruslan_manov/mathematical-animations-in-pure-python-zero-dependencies-one-file-4k4i) | field note | 0 reactions / 0 comments | python, showdev, generativeart, math |
 | 2026-02-01 | [Finding Primes of the Form p^2 + 4q^2: From Oxford Mathematics to Python Multiprocessing](https://dev.to/ruslan_manov/finding-primes-of-the-form-p2-4q2-from-oxford-mathematics-to-python-multiprocessing-1ci0) | field note | 0 reactions / 0 comments | python, math, algorithms, opensource |
 | 2026-02-01 | [How to Count a Billion Unique Items with Almost No Memory](https://dev.to/ruslan_manov/how-to-count-a-billion-unique-items-with-almost-no-memory-735) | field note | 0 reactions / 0 comments | python, datascience, algorithms, opensource |
 | 2026-02-01 | [You're probably using the wrong fuzzy matching algorithm (and here's how to see why)](https://dev.to/ruslan_manov/youre-probably-using-the-wrong-fuzzy-matching-algorithm-and-heres-how-to-see-why-4efc) | field note | 0 reactions / 0 comments | python, algorithms, tutorial, opensource |
