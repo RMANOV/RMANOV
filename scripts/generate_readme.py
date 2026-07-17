@@ -19,6 +19,13 @@ from urllib.request import Request, urlopen
 
 OWNER = "RMANOV"
 TOP_N = 7
+PINNED_FEATURED_REPOS = ("algorithmic-arts",)
+CURATED_SHOWCASE_ASSETS = (
+    "hopf-fibration.gif",
+    "murmuration-wars.gif",
+    "three-body-ballet.gif",
+    "hyperbolic-flow.gif",
+)
 WRITING_TOP_N = 6
 BAR_WIDTH = 24
 MAX_LANGUAGES = 5
@@ -352,13 +359,34 @@ def render_bar(pct: float, width: int = BAR_WIDTH) -> str:
     return "\u2588" * filled + " " * (width - filled)
 
 
+def select_featured_repos(
+    scored: list[tuple[float, dict]],
+) -> list[tuple[float, dict]]:
+    """Keep the dynamic top repos plus explicitly curated portfolio showcases."""
+    selected = list(scored[:TOP_N])
+    selected_names = {repo["name"] for _, repo in selected}
+
+    for pinned_name in PINNED_FEATURED_REPOS:
+        if pinned_name in selected_names:
+            continue
+        pinned = next(
+            (entry for entry in scored if entry[1]["name"] == pinned_name),
+            None,
+        )
+        if pinned is not None:
+            selected.append(pinned)
+            selected_names.add(pinned_name)
+
+    return selected
+
+
 def build_featured_table(scored: list[tuple[float, dict]]) -> str:
-    """Build markdown table of top repos."""
+    """Build markdown table of top and curated repos."""
     lines = [
         "| Project | Stack | Description |",
         "|---------|-------|-------------|",
     ]
-    for _, repo in scored[:TOP_N]:
+    for _, repo in select_featured_repos(scored):
         name = repo["name"]
         url = repo["html_url"]
         lang = repo.get("language") or "\u2014"
@@ -367,6 +395,20 @@ def build_featured_table(scored: list[tuple[float, dict]]) -> str:
             desc = desc[:120].rsplit(" ", 1)[0] + "..."
         lines.append(f"| [**{name}**]({url}) | {lang} | {desc} |")
     return "\n".join(lines)
+
+
+def validate_curated_showcase(readme: str) -> None:
+    """Fail closed before publishing a profile that lost its curated gallery."""
+    missing = [
+        asset
+        for asset in CURATED_SHOWCASE_ASSETS
+        if readme.count(f"/assets/{asset}") != 1
+    ]
+    if missing:
+        sys.exit(
+            "ERROR: Curated algorithmic-arts gallery is incomplete: "
+            + ", ".join(missing)
+        )
 
 
 def parse_article_datetime(article: dict) -> datetime:
@@ -735,8 +777,9 @@ def generate():
     ]
     scored.sort(key=lambda x: x[0], reverse=True)
 
-    print(f"Top {TOP_N}:")
-    for score, repo in scored[:TOP_N]:
+    featured = select_featured_repos(scored)
+    print(f"Featured ({TOP_N} dynamic + curated pins):")
+    for score, repo in featured:
         print(f"  {score:6.1f}  {repo['name']}")
 
     print("Fetching public writing from Dev.to...")
@@ -758,6 +801,7 @@ def generate():
         contact_line=build_contact_line(profile),
         updated_at=updated_at,
     )
+    validate_curated_showcase(readme)
 
     output_path.write_text(readme, encoding="utf-8")
     print(f"Done. README written to {output_path}")
