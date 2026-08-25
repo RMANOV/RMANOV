@@ -5,7 +5,7 @@ The current automatic source is Dev.to because it exposes a stable public API.
 LinkedIn and Medium can be added later through a small manual manifest when their links need to be pinned.
 
 Source: https://dev.to/ruslan_manov
-Last generated: 2026-08-24 06:21 UTC
+Last generated: 2026-08-25 06:15 UTC
 
 ## Start Here
 
@@ -60,6 +60,7 @@ Last generated: 2026-08-24 06:21 UTC
 
 | Date | Article | Project | Signals | Tags |
 |------|---------|---------|---------|------|
+| 2026-08-24 | [How SmartKey Keeps Two Alphabets Alive Until Context Decides](https://dev.to/ruslan_manov/how-smartkey-keeps-two-alphabets-alive-until-context-decides-461k) | field note | 0 reactions / 0 comments | rust, linux, programming, opensource |
 | 2026-02-09 | [I Turned a Webcam Into an Ambient Light Sensor](https://dev.to/ruslan_manov/i-turned-a-webcam-into-an-ambient-light-sensor-265l) | field note | 0 reactions / 0 comments | rust, python, linux, opensource |
 
 ## Notes
