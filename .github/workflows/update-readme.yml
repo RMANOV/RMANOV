@@ -4,11 +4,17 @@ on:
   schedule:
     - cron: '0 6 * * *'  # Daily at 06:00 UTC (08:00 Sofia)
   workflow_dispatch:       # Manual trigger from Actions tab
+  pull_request:
+    paths:
+      - 'templates/**'
+      - 'scripts/**'
+      - 'tests/**'
   push:
     branches: [main]
     paths:
       - 'templates/**'
       - 'scripts/**'
+      - 'tests/**'
 
 permissions:
   contents: write
@@ -24,12 +30,16 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Run profile generator regression tests
+        run: python -m unittest discover -s tests -v
+
       - name: Generate profile README and publications index
         run: python scripts/generate_readme.py
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit if changed
+        if: github.event_name != 'pull_request'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
