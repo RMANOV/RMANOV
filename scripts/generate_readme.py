@@ -373,9 +373,13 @@ def select_featured_repos(
             (entry for entry in scored if entry[1]["name"] == pinned_name),
             None,
         )
-        if pinned is not None:
-            selected.append(pinned)
-            selected_names.add(pinned_name)
+        if pinned is None:
+            sys.exit(
+                "ERROR: Pinned featured repository is missing from the scored "
+                f"repository set: {pinned_name}"
+            )
+        selected.append(pinned)
+        selected_names.add(pinned_name)
 
     return selected
 
