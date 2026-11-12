@@ -5,7 +5,7 @@ The current automatic source is Dev.to because it exposes a stable public API.
 LinkedIn and Medium can be added later through a small manual manifest when their links need to be pinned.
 
 Source: https://dev.to/ruslan_manov
-Last generated: 2026-11-11 06:20 UTC
+Last generated: 2026-11-12 06:20 UTC
 
 ## Start Here
 
