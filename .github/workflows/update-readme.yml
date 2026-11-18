@@ -17,10 +17,29 @@ on:
       - 'tests/**'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run profile generator regression tests
+        run: python -m unittest discover -s tests -v
+
   update-readme:
+    needs: test
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
 
     steps:
@@ -30,16 +49,12 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Run profile generator regression tests
-        run: python -m unittest discover -s tests -v
-
       - name: Generate profile README and publications index
         run: python scripts/generate_readme.py
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit if changed
-        if: github.event_name != 'pull_request'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

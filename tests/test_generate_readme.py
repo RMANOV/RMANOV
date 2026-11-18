@@ -12,7 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location(
     "generate_readme", ROOT / "scripts" / "generate_readme.py"
 )
-assert SPEC is not None and SPEC.loader is not None
+if SPEC is None or SPEC.loader is None:
+    raise ImportError("Cannot load scripts/generate_readme.py for profile tests")
 generate_readme = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(generate_readme)
 
@@ -75,9 +76,9 @@ class CuratedShowcaseTests(unittest.TestCase):
         template = (ROOT / "templates" / "README.template.md").read_text(
             encoding="utf-8"
         )
-        showcase = template.split("<!-- Curated showcase:", 1)[1].split(
-            "</table>", 1
-        )[0]
+        showcase = template.split("<!-- Curated showcase:", 1)[1].split("</table>", 1)[
+            0
+        ]
         rows = re.findall(r"<tr>(.*?)</tr>", showcase, flags=re.DOTALL)
 
         self.assertEqual(len(rows), 2)
@@ -87,8 +88,7 @@ class CuratedShowcaseTests(unittest.TestCase):
 
     def test_asset_guard_accepts_complete_gallery_and_rejects_loss(self) -> None:
         complete = "\n".join(
-            f"/assets/{asset}"
-            for asset in generate_readme.CURATED_SHOWCASE_ASSETS
+            f"/assets/{asset}" for asset in generate_readme.CURATED_SHOWCASE_ASSETS
         )
         generate_readme.validate_curated_showcase(complete)
 
